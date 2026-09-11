@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NAS 控制面板</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="card">
+    <header>
+      <h1>NAS 控制面板</h1>
+      <p class="subtitle">屏幕开关 · 定时关机</p>
+    </header>
+
+    <section class="section">
+      <h2 class="section-title">屏幕</h2>
+      <div class="actions">
+        <button id="btn-off" class="btn btn-off" type="button">
+          <span class="icon" aria-hidden="true">⏻</span>
+          关闭屏幕
+        </button>
+        <button id="btn-on" class="btn btn-on" type="button">
+          <span class="icon" aria-hidden="true">☀</span>
+          打开屏幕
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">定时关机</h2>
+
+      <label class="field">
+        <span class="field-label">每天关机时间</span>
+        <input id="schedule-time" type="time" value="03:00" step="60" />
+      </label>
+
+      <label class="toggle">
+        <input id="schedule-enabled" type="checkbox" />
+        <span>启用定时关机</span>
+      </label>
+
+      <button id="btn-save-schedule" class="btn btn-save" type="button">
+        保存计划
+      </button>
+
+      <div id="schedule-info" class="schedule-info">未加载…</div>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite">
+      就绪
+    </div>
+
+    <footer>
+      <code id="tty">…</code>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
