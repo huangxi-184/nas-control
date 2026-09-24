@@ -19,6 +19,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -27,6 +28,13 @@ body {
     var(--bg);
   color: var(--text);
   padding: 24px;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .card {
@@ -66,6 +74,7 @@ h1 {
   border: 1px solid transparent;
   border-radius: var(--radius);
   padding: 16px 20px;
+  min-height: 52px;
   font-size: 1.05rem;
   font-weight: 600;
   font-family: inherit;
@@ -75,6 +84,7 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  touch-action: manipulation;
   transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
 }
 
@@ -84,17 +94,21 @@ h1 {
   transform: none;
 }
 
-.btn:not(:disabled):hover {
-  filter: brightness(1.08);
+@media (hover: hover) {
+  .btn:not(:disabled):hover {
+    filter: brightness(1.08);
+  }
 }
 
 .btn:not(:disabled):active {
   transform: scale(0.98);
+  filter: brightness(0.95);
 }
 
 .btn .icon {
   font-size: 1.15rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .btn-off {
@@ -137,13 +151,16 @@ h1 {
 
 .field input[type="time"] {
   width: 100%;
+  min-height: 48px;
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font: inherit;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  color-scheme: dark;
+  touch-action: manipulation;
 }
 
 .field input[type="time"]:focus {
@@ -156,15 +173,18 @@ h1 {
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
+  min-height: 44px;
+  padding: 8px 0;
   font-size: 0.95rem;
   color: var(--text);
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
 }
 
 .toggle input {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   accent-color: var(--on);
   cursor: pointer;
 }
@@ -218,4 +238,90 @@ footer code {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px 8px;
+}
+
+/* —— 手机端适配（基准：一加 15T，6.32" 2640×1216，视口宽约 405–423px） —— */
+@media (max-width: 480px) {
+  body {
+    place-items: start center;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+  }
+
+  .card {
+    width: 100%;
+    padding: 24px 18px 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  header {
+    margin-bottom: 22px;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  .actions {
+    gap: 12px;
+  }
+
+  .btn {
+    min-height: 56px;
+    font-size: 1.1rem;
+    border-radius: 16px;
+  }
+
+  .btn .icon {
+    font-size: 1.25rem;
+  }
+
+  .section + .section {
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+
+  .field {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .field input[type="time"] {
+    min-height: 52px;
+    font-size: 16px; /* 防止 iOS/Chrome 聚焦时页面自动放大 */
+  }
+
+  .toggle {
+    margin-bottom: 12px;
+  }
+
+  .btn-save {
+    min-height: 52px;
+  }
+
+  .status {
+    margin-top: 18px;
+    font-size: 0.92rem;
+    word-break: break-word;
+  }
+
+  footer {
+    margin-top: 14px;
+  }
+}
+
+/* 窄屏兜底（≤340px，如 320px 级老机型）
+   基准机一加 15T 实测 CSS 视口宽 347px（1216 ÷ DPR 3.5），不落入此档 */
+@media (max-width: 340px) {
+  .card {
+    padding: 20px 14px 16px;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+  }
 }

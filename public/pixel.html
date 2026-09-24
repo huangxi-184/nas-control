@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屏幕 CSS 像素检测</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0f1115;
+    color: #e6e6e6;
+    line-height: 1.6;
+  }
+  h1 { font-size: 20px; margin: 0 0 16px; color: #7ee787; }
+  #copy-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #0f1115;
+    background: linear-gradient(180deg, #7ee787, #58a6ff);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #copy-btn:active { filter: brightness(0.92); }
+  #copy-btn.done { background: #7ee787; }
+  .card {
+    background: #171a21;
+    border: 1px solid #262b36;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 10px;
+    color: #8b949e;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px dashed #22262f;
+    font-size: 15px;
+  }
+  .row:last-child { border-bottom: none; }
+  .key { color: #9aa4b2; }
+  .val { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+         color: #58a6ff; font-weight: 600; font-size: 16px; }
+  .big .val { color: #7ee787; font-size: 20px; }
+  .note { font-size: 13px; color: #6e7681; margin-top: 8px; }
+  .ruler {
+    height: 60px;
+    background: repeating-linear-gradient(
+      90deg, #58a6ff 0, #58a6ff 1px, transparent 1px, transparent 100px
+    );
+    border: 1px solid #262b36;
+    border-radius: 8px;
+    position: relative;
+  }
+  .ruler span {
+    position: absolute; top: 22px; left: 6px;
+    font-size: 12px; color: #8b949e;
+  }
+  .box100 {
+    width: 100px; height: 100px;
+    background: linear-gradient(135deg, #7ee787, #58a6ff);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #0f1115; font-weight: 700; font-size: 13px;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>📱 屏幕 / CSS 像素检测</h1>
+
+<button id="copy-btn" type="button">📋 一键复制全部数据</button>
+
+<div class="card">
+  <h2>CSS 视口 (window.innerWidth × innerHeight)</h2>
+  <div class="row big"><span class="key">宽度</span><span class="val" id="iw">-</span></div>
+  <div class="row big"><span class="key">高度</span><span class="val" id="ih">-</span></div>
+  <div class="note">这就是网页实际可用的 CSS 像素尺寸</div>
+</div>
+
+<div class="card">
+  <h2>设备像素比 DPR</h2>
+  <div class="row big"><span class="key">devicePixelRatio</span><span class="val" id="dpr">-</span></div>
+  <div class="note">物理像素 = CSS 像素 × DPR</div>
+</div>
+
+<div class="card">
+  <h2>物理屏幕 (screen)</h2>
+  <div class="row"><span class="key">screen.width × height</span><span class="val" id="sw">-</span></div>
+  <div class="row"><span class="key">screen.width × height × DPR</span><span class="val" id="swphys">-</span></div>
+  <div class="row"><span class="key">availWidth × availHeight</span><span class="val" id="sav">-</span></div>
+</div>
+
+<div class="card">
+  <h2>推算 PPI</h2>
+  <div class="row"><span class="key">对角 CSS 像素</span><span class="val" id="diagcss">-</span></div>
+  <div class="row"><span class="key">推算 PPI (按物理分辨率)</span><span class="val" id="ppi">-</span></div>
+  <div class="note">PPI 需要输入屏幕物理对角尺寸才能精确计算；这里用物理像素反推。</div>
+</div>
+
+<div class="card">
+  <h2>视觉参考</h2>
+  <div class="ruler"><span>每格 = 100 CSS px</span></div>
+  <div class="box100">100 CSS px</div>
+  <div class="note">上面的方块理论上宽 100 CSS px，可用来感受实际渲染大小。</div>
+</div>
+
+<div class="card">
+  <h2>其他</h2>
+  <div class="row"><span class="key">屏幕朝向</span><span class="val" id="orient">-</span></div>
+  <div class="row"><span class="key">User Agent</span><span class="val" id="ua" style="font-size:11px;word-break:break-all;">-</span></div>
+</div>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+
+  function update() {
+    const dpr  = window.devicePixelRatio || 1;
+    const iw   = window.innerWidth;
+    const ih   = window.innerHeight;
+    const sw   = screen.width;
+    const sh   = screen.height;
+    const saw  = screen.availWidth;
+    const sah  = screen.availHeight;
+
+    $('iw').textContent  = iw + ' px';
+    $('ih').textContent  = ih + ' px';
+    $('dpr').textContent = dpr;
+
+    $('sw').textContent = sw + ' × ' + sh;
+    $('swphys').textContent = Math.round(sw * dpr) + ' × ' + Math.round(sh * dpr);
+    $('sav').textContent = saw + ' × ' + sah;
+
+    // 对角 CSS 像素
+    const diag = Math.sqrt(iw * iw + ih * ih);
+    $('diagcss').textContent = diag.toFixed(1) + ' px';
+
+    // 用物理分辨率 + 假设 6.32 英寸反推 PPI（仅作参考）
+    const physW = sw * dpr, physH = sh * dpr;
+    const physDiag = Math.sqrt(physW * physW + physH * physH);
+    const inches = 6.32; // 你提供的屏幕尺寸
+    $('ppi').textContent = (physDiag / inches).toFixed(1) + ' PPI（按 ' + inches + ' 英寸估算）';
+
+    // 朝向
+    $('orient').textContent = iw > ih ? '横向 Landscape' : '纵向 Portrait';
+
+    // UA
+    $('ua').textContent = navigator.userAgent;
+  }
+
+  update();
+  window.addEventListener('resize', update);
+  window.addEventListener('orientationchange', () => setTimeout(update, 300));
+
+  // —— 一键复制 ——
+  function buildReport() {
+    return [
+      '【屏幕/CSS 像素检测】',
+      'CSS视口(宽×高): ' + $('iw').textContent + ' × ' + $('ih').textContent,
+      'DPR: ' + $('dpr').textContent,
+      'screen(CSS像素): ' + $('sw').textContent,
+      '物理像素: ' + $('swphys').textContent,
+      'avail: ' + $('sav').textContent,
+      '对角CSS: ' + $('diagcss').textContent,
+      $('ppi').textContent,
+      '朝向: ' + $('orient').textContent,
+      'UA: ' + $('ua').textContent,
+    ].join('\n');
+  }
+
+  function legacyCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  const copyBtn = document.getElementById('copy-btn');
+  copyBtn.addEventListener('click', function () {
+    const text = buildReport();
+    const done = function (ok) {
+      copyBtn.textContent = ok ? '✓ 已复制，去粘贴吧' : '复制失败，请长按手动选中';
+      copyBtn.classList.toggle('done', ok);
+      setTimeout(function () {
+        copyBtn.textContent = '📋 一键复制全部数据';
+        copyBtn.classList.remove('done');
+      }, 2000);
+    };
+
+    // 局域网 HTTP 属非安全上下文，navigator.clipboard 不可用，直接走兜底
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(legacyCopy(text)); });
+    } else {
+      done(legacyCopy(text));
+    }
+  });
+})();
+</script>
+</body>
+</html>
